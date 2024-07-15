@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{ vino.bodega }}</title>
+    <style>
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+        }
+
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+
+        .star-rating label {
+            display: inline-block;
+            width: 20px; /* tamaño de las estrellas */
+            height: 20px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23ccc" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.897 1.472 8.28L12 18.896l-7.408 4.087 1.472-8.28-6.064-5.897 8.332-1.151z"/></svg>') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+        }
+
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23f7b519" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.897 1.472 8.28L12 18.896l-7.408 4.087 1.472-8.28-6.064-5.897 8.332-1.151z"/></svg>');
+        }
+
+        .container {
+            max-height: 90vh; /* ajusto para evitar el desplazamiento */
+            overflow-y: auto;
+        }
+    </style>
+
+<script> /* script para no mostrar la descripción de una y que quede más ordenado */
+    function mostrarDescripcionCompleta(vinoId) {
+        document.getElementById('descripcion-' + vinoId).style.display = 'none';
+        document.getElementById('descripcion-completa-' + vinoId).style.display = 'block';
+    }
+    
+    function ocultarDescripcionCompleta(vinoId) {
+        document.getElementById('descripcion-completa-' + vinoId).style.display = 'none';
+        document.getElementById('descripcion-' + vinoId).style.display = 'block';
+    }
+    </script>      
+       
+</head>
+
+<body class="bg-gray-100">
+    <form method="post" class="container">
+    <div class="container mx-auto p-8">
+        <div class="mb-4"> <!--  botón Inicio para guardar respuestas del formulario y regresar a /recomendaciones -->
+            <button type="submit" formaction="/recomendaciones" class="border bg-teal-500 hover:bg-teal-700 text-white text-lg font-bold px-2 py-1 ml-auto">Inicio</button>
+        </div>
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg grid grid-cols-2 gap-8">
+            <div class="flex">
+                <img src="{{ vino.imagen }}" class="w-40 border" />
+                <div class="flex flex-col flex-grow p-4">
+                    <h3 class="text-lg font-semibold mb-1">
+                        {{ vino.vino }}
+                    </h3>
+                    <p class="mb-1">{{ vino.bodega|title }} | {{ vino.region }} ({{ vino.pais|title }})</p>
+                    {% if vino.varietal %}
+                    <p class="text-xs text-gray-700">{{ vino.varietal }} | {{ vino.descripcion_cuerpo }}</p>
+                    {% endif %}
+                    <div class="flex items-center mt-2">
+                        <div class="flex flex-col items-center">
+                            <p class="text-xl font-bold">{{ vino.rating_vino }}</p>
+                            <div class="flex mt-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= vino.rating_vino %}
+                                        <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.357 4.172h4.382c.97 0 1.372 1.24.588 1.81l-3.547 2.577 1.357 4.172c.3.921-.755 1.688-1.539 1.118L10 13.011l-3.547 2.577c-.783.57-1.839-.197-1.539-1.118l1.357-4.172-3.547-2.577c-.783-.57-.382-1.81.588-1.81h4.382l1.357-4.172z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.357 4.172h4.382c.97 0 1.372 1.24.588 1.81l-3.547 2.577 1.357 4.172c.3.921-.755 1.688-1.539 1.118L10 13.011l-3.547 2.577c-.783.57-1.839-.197-1.539-1.118l1.357-4.172-3.547-2.577c-.783-.57-.382-1.81.588-1.81h4.382l1.357-4.172z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <small>{{ vino.cant_reviews }} valoraciones</small>
+                        </div>
+                        <div class="flex flex-col items-center ml-4">
+                            <p class="text-lg font-semibold mb-1">{{ vino.precio }}</p>
+                            <small>Precio promedio</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <p class="text-xs text-gray-700">{% if vino.gusto_1 %}Notas: {{ vino.gusto_1 }}{% endif %}{% if vino.gusto_2 %}, {{ vino.gusto_2 }}{% endif %}{% if vino.gusto_3 %}, {{ vino.gusto_3 }}{% endif %}{% if vino.gusto_4 %}, {{ vino.gusto_4 }}{% endif %}{% if vino.gusto_5 %}, {{ vino.gusto_5 }}{% endif %}{% if vino.gusto_6 %}, {{ vino.gusto_6 }}{% endif %}</p>
+                    </div>
+
+                    <div class="mt-2">
+                        <div class="flex flex-wrap">
+                            <!-- Acidez -->
+                            {% if vino.acidez %}
+                            <div class="mr-4 mb-2 text-center">
+                                <p class="text-xs text-gray-700">Acidez</p>
+                                <div class="flex justify-center mt-1">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= vino.acidez %}
+                                            <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Efervecencia -->
+                            {% if vino.efervecencia %}
+                            <div class="mr-4 mb-2 text-center">
+                                <p class="text-xs text-gray-700">Efervecencia</p>
+                                <div class="flex justify-center mt-1">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= vino.efervecencia %}
+                                            <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Intensidad -->
+                            {% if vino.intensidad %}
+                            <div class="mr-4 mb-2 text-center">
+                                <p class="text-xs text-gray-700">Intensidad</p>
+                                <div class="flex justify-center mt-1">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= vino.intensidad %}
+                                            <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Dulzura -->
+                            {% if vino.dulzura %}
+                            <div class="mr-4 mb-2 text-center">
+                                <p class="text-xs text-gray-700">Dulzura</p>
+                                <div class="flex justify-center mt-1">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= vino.dulzura %}
+                                            <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Tanino -->
+                            {% if vino.tanino %}
+                            <div class="mr-4 mb-2 text-center">
+                                <p class="text-xs text-gray-700">Tanino</p>
+                                <div class="flex justify-center mt-1">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= vino.tanino %}
+                                            <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="10" cy="10" r="6"/>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+            <div class="p-4">
+                {% if vino.descripcion %}
+                <p class="text-xs text-gray-700">{{ vino.descripcion }}</p>
+                {% endif %} <!--  Acá dejo la descripción completa -->
+
+                <div class="flex flex-wrap gap-4 mt-4">
+                    {% if vino.maridaje_1_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_1_viv }}" class="object-cover w-20 h-20 rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_1 }}</small>
+                        </div>
+                    {% endif %}
+                    {% if vino.maridaje_2_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_2_viv }}" class="object-cover w-20 h-20 rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_2 }}</small>
+                        </div>
+                    {% endif %}
+                    {% if vino.maridaje_3_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_3_viv }}" class="object-cover w-20 h-20  rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_3 }}</small>
+                        </div>
+                    {% endif %}
+                    {% if vino.maridaje_4_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_4_viv }}" class="object-cover w-20 h-20  rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_4 }}</small>
+                        </div>
+                    {% endif %}
+                    {% if vino.maridaje_5_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_5_viv }}" class="object-cover w-20 h-20  rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_5 }}</small>
+                        </div>
+                    {% endif %}
+                    {% if vino.maridaje_6_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_6_viv }}" class="object-cover w-20 h-20  rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_6 }}</small>
+                        </div>
+                    {% endif %}
+
+                <div class="ml-auto text-xs mt-2">
+                    <label>Mi puntuación:</label>
+                        <div class="star-rating">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" name="{{ vino.id_vino }}" id="{{ vino.id_vino }}-{{ i }}" value="{{ i }}" {% if i == 0 %} checked{% endif %}>
+                            <label for="{{ vino.id_vino }}-{{ i }}"></label>
+                            {% endfor %}
+                        </div>
+                </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- RECOMENDADOR ASOCIADOS -->
+
+<div class="w-full mt-8">
+    <h2 class="text-lg font-bold mb-4">Otros vinos de la bodega</h2>
+    <div class="flex gap-4 overflow-x-auto">
+        {% if otros_vinos_de_bodega %}
+            {% for vino in otros_vinos_de_bodega %}
+        <div class="bg-white border shadow-lg p-4 rounded flex flex-col min-w-max">
+            <div class="flex">
+                <img src="{{ vino.imagen }}" class="mr-2 w-28 border" /> <!-- tamaño de la imagen -->
+                <div class="flex flex-col text-sm">
+                    <h3 class="text-lg font-semibold mb-1"> <!--  botón para entrar a otro vino y guardar respuestas del formulario, region y varietal tienen lo mismo -->
+                        <button type="submit" formaction="{{ url_for('vino_detalle', id_vino=vino.id_vino) }}" >{{ vino.vino }}</button>
+                    </h3>
+                    <p class="mb-1">{{ vino.bodega|title }} | {{ vino.region }} ({{ vino.pais|title }})</p>
+                    {% if vino.varietal %}
+                    <p class="text-xs text-gray-700">{{ vino.varietal }} | {{ vino.descripcion_cuerpo }}  </p>
+                    {% endif %}
+                    <div class="flex items-center mt-2">
+                        <div class="flex flex-col items-center">
+
+
+                            <label>Mi puntuación:</label>
+                            <div class="star-rating"> 
+                                {% for i in range(5, 0, -1) %}
+                                <input type="radio" name="{{ vino.id_vino }}" id="{{ vino.id_vino }}-{{ i }}" value="{{ i }}" {% if i == 0 %} checked{% endif %}>
+                                <label for="{{ vino.id_vino }}-{{ i }}"></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-center ml-4">
+                            <p class="text-lg font-semibold mb-1">{{ vino.precio }}</p>
+                            <small class="mb-1">Precio promedio</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-700">{% if vino.gusto_1 %}Notas: {{ vino.gusto_1 }}{% endif %}{% if vino.gusto_2 %}, {{ vino.gusto_2 }}{% endif %}{% if vino.gusto_3 %}, {{ vino.gusto_3 }}{% endif %}{% if vino.gusto_4 %}, {{ vino.gusto_4 }}{% endif %}{% if vino.gusto_5 %}, {{ vino.gusto_5 }}{% endif %}{% if vino.gusto_6 %}, {{ vino.gusto_6 }}{% endif %}</p>
+
+            <div class="mt-2">
+                <div class="flex flex-wrap">
+                    <!-- Acidez -->
+                    {% if vino.acidez %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Acidez</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.acidez %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Efervecencia -->
+                    {% if vino.efervecencia %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Efervecencia</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.efervecencia %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Intensidad -->
+                    {% if vino.intensidad %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Intensidad</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.intensidad %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dulzura -->
+                    {% if vino.dulzura %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Dulzura</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.dulzura %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Tanino -->
+                    {% if vino.tanino %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Tanino</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.tanino %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if vino.descripcion %}
+            <div class="text-xs text-gray-700 mt-2" style="max-width: 400px; word-wrap: break-word;">
+                <small id="descripcion-{{ vino.id }}">
+                    {{ vino.descripcion.split(' ')[:20] | join(' ') }}...
+                    <a href="javascript:void(0);" onclick="mostrarDescripcionCompleta('{{ vino.id }}')">ver más</a>
+                </small>
+                <small id="descripcion-completa-{{ vino.id }}" style="display: none;">
+                    {{ vino.descripcion }}
+                    <a href="javascript:void(0);" onclick="ocultarDescripcionCompleta('{{ vino.id }}')">ver menos</a>
+                </small>
+            </div>
+        {% endif %}
+
+
+            {% if vino.maridaje_1_viv %}
+            <div class="mt-2">
+                <div class="flex flex-wrap gap-4">
+                    {% if vino.maridaje_1_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_1_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_1 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vino.maridaje_2_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_2_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_2 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vino.maridaje_3_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_3_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_3 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vino.maridaje_4_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_4_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_4 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+        {% else %}
+        <small>No hay más vinos de esta bodega para recomendarte</small>
+        {% endif %}
+        </div>
+        </div>
+
+<div class="w-full mt-8">
+    <h2 class="text-lg font-bold mb-4">Otros vinos de la región</h2>
+    <div class="flex gap-4 overflow-x-auto">
+        {% if otros_vinos_de_region %}
+        {% for vino in otros_vinos_de_region %}
+        <div class="bg-white border shadow-lg p-4 rounded flex flex-col min-w-max">
+            <div class="flex">
+                <img src="{{ vino.imagen }}" class="mr-2 w-28 border" /> <!-- tamaño de la imagen -->
+                <div class="flex flex-col text-sm">
+                    <h3 class="text-lg font-semibold mb-1">
+                        <button type="submit" formaction="{{ url_for('vino_detalle', id_vino=vino.id_vino) }}" >{{ vino.vino }}</button>
+                    </h3>
+                    <p class="mb-1">{{ vino.bodega|title }} | {{ vino.region }} ({{ vino.pais|title }})</p>
+                    {% if vino.varietal %}
+                    <p class="text-xs text-gray-700">{{ vino.varietal }} | {{ vino.descripcion_cuerpo }}  </p>
+                    {% endif %}
+                    <div class="flex items-center mt-2">
+                        <div class="flex flex-col items-center">
+ 
+                            <label>Mi puntuación:</label>
+                            <div class="star-rating">
+                                {% for i in range(5, 0, -1) %}
+                                <input type="radio" name="{{ vino.id_vino }}" id="{{ vino.id_vino }}-{{ i }}" value="{{ i }}" {% if i == 0 %} checked{% endif %}>
+                                <label for="{{ vino.id_vino }}-{{ i }}"></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col items-center ml-4">
+                            <p class="text-lg font-semibold mb-1">{{ vino.precio }}</p>
+                            <small class="mb-1">Precio promedio</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-700">{% if vino.gusto_1 %}Notas: {{ vino.gusto_1 }}{% endif %}{% if vino.gusto_2 %}, {{ vino.gusto_2 }}{% endif %}{% if vino.gusto_3 %}, {{ vino.gusto_3 }}{% endif %}{% if vino.gusto_4 %}, {{ vino.gusto_4 }}{% endif %}{% if vino.gusto_5 %}, {{ vino.gusto_5 }}{% endif %}{% if vino.gusto_6 %}, {{ vino.gusto_6 }}{% endif %}</p>
+
+            <div class="mt-2">
+                <div class="flex flex-wrap">
+                    <!-- Acidez -->
+                    {% if vino.acidez %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Acidez</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.acidez %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Efervecencia -->
+                    {% if vino.efervecencia %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Efervecencia</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.efervecencia %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Intensidad -->
+                    {% if vino.intensidad %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Intensidad</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.intensidad %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dulzura -->
+                    {% if vino.dulzura %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Dulzura</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.dulzura %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Tanino -->
+                    {% if vino.tanino %}
+                    <div class="mr-4 mb-2 text-center">
+                        <p class="text-xs text-gray-700">Tanino</p>
+                        <div class="flex justify-center mt-1">
+                            {% for i in range(1, 6) %}
+                                {% if i <= vino.tanino %}
+                                    <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if vino.descripcion %} 
+            <div class="text-xs text-gray-700 mt-2" style="max-width: 400px; word-wrap: break-word;">
+                <small id="descripcion-{{ vino.id }}">
+                    {{ vino.descripcion.split(' ')[:20] | join(' ') }}...
+                    <a href="javascript:void(0);" onclick="mostrarDescripcionCompleta('{{ vino.id }}')">ver más</a>
+                </small>
+                <small id="descripcion-completa-{{ vino.id }}" style="display: none;">
+                    {{ vino.descripcion }}
+                    <a href="javascript:void(0);" onclick="ocultarDescripcionCompleta('{{ vino.id }}')">ver menos</a>
+                </small>
+            </div>
+        {% endif %}
+        
+
+            {% if vino.maridaje_1_viv %}
+            <div class="mt-2">
+                <div class="flex flex-wrap gap-4">
+                    {% if vino.maridaje_1_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_1_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_1 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vino.maridaje_2_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_2_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_2 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vino.maridaje_3_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_3_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_3 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vino.maridaje_4_viv %}
+                    <div class="flex flex-col items-center">
+                        <img src="{{ vino.maridaje_4_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                        <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_4 }}</small>
+                    </div>
+                    {% endif %}
+                    
+                </div>
+            </div>
+            {% endif %}
+
+
+        </div>
+        {% endfor %}
+        {% else %}
+        <small>No hay más vinos de esta región para recomendarte</small>
+        {% endif %}
+        </div>
+        </div>
+
+    <div class="w-full mt-8">
+        <h2 class="text-lg font-bold mb-4">Otros vinos del varietal</h2>
+        <div class="flex gap-4 overflow-x-auto">
+            {% if otros_vinos_de_varietal %}
+            {% for vino in otros_vinos_de_varietal %}
+            <div class="bg-white border shadow-lg p-4 rounded flex flex-col min-w-max">
+                <div class="flex">
+                    <img src="{{ vino.imagen }}" class="mr-2 w-28 border" /> <!--  tamaño de la imagen -->
+                    <div class="flex flex-col text-sm">
+                        <h3 class="text-lg font-semibold mb-1">
+                            <button type="submit" formaction="{{ url_for('vino_detalle', id_vino=vino.id_vino) }}" >{{ vino.vino }}</button>
+                        </h3>
+                        <p class="mb-1">{{ vino.bodega|title }} | {{ vino.region }} ({{ vino.pais|title }})</p>
+                        {% if vino.varietal %}
+                        <p class="text-xs text-gray-700">{{ vino.varietal }} | {{ vino.descripcion_cuerpo }}  </p>
+                        {% endif %}
+                        <div class="flex items-center mt-2">
+                            <div class="flex flex-col items-center">
+                               
+                                <label>Mi puntuación:</label>
+                                <div class="star-rating">
+                                    {% for i in range(5, 0, -1) %}
+                                    <input type="radio" name="{{ vino.id_vino }}" id="{{ vino.id_vino }}-{{ i }}" value="{{ i }}" {% if i == 0 %} checked{% endif %}>
+                                    <label for="{{ vino.id_vino }}-{{ i }}"></label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col items-center ml-4">
+                                <p class="text-lg font-semibold mb-1">{{ vino.precio }}</p>
+                                <small class="mb-1">Precio promedio</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-700">{% if vino.gusto_1 %}Notas: {{ vino.gusto_1 }}{% endif %}{% if vino.gusto_2 %}, {{ vino.gusto_2 }}{% endif %}{% if vino.gusto_3 %}, {{ vino.gusto_3 }}{% endif %}{% if vino.gusto_4 %}, {{ vino.gusto_4 }}{% endif %}{% if vino.gusto_5 %}, {{ vino.gusto_5 }}{% endif %}{% if vino.gusto_6 %}, {{ vino.gusto_6 }}{% endif %}</p>
+    
+                <div class="mt-2">
+                    <div class="flex flex-wrap">
+                        <!-- Acidez -->
+                        {% if vino.acidez %}
+                        <div class="mr-4 mb-2 text-center">
+                            <p class="text-xs text-gray-700">Acidez</p>
+                            <div class="flex justify-center mt-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= vino.acidez %}
+                                        <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Efervecencia -->
+                        {% if vino.efervecencia %}
+                        <div class="mr-4 mb-2 text-center">
+                            <p class="text-xs text-gray-700">Efervecencia</p>
+                            <div class="flex justify-center mt-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= vino.efervecencia %}
+                                        <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Intensidad -->
+                        {% if vino.intensidad %}
+                        <div class="mr-4 mb-2 text-center">
+                            <p class="text-xs text-gray-700">Intensidad</p>
+                            <div class="flex justify-center mt-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= vino.intensidad %}
+                                        <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Dulzura -->
+                        {% if vino.dulzura %}
+                        <div class="mr-4 mb-2 text-center">
+                            <p class="text-xs text-gray-700">Dulzura</p>
+                            <div class="flex justify-center mt-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= vino.dulzura %}
+                                        <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Tanino -->
+                        {% if vino.tanino %}
+                        <div class="mr-4 mb-2 text-center">
+                            <p class="text-xs text-gray-700">Tanino</p>
+                            <div class="flex justify-center mt-1">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= vino.tanino %}
+                                        <svg class="w-3 h-3 text-teal-500" fill="#319795" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="10" cy="10" r="6"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if vino.descripcion %}
+                <div class="text-xs text-gray-700 mt-2" style="max-width: 400px; word-wrap: break-word;">
+                    <small id="descripcion-{{ vino.id }}">
+                        {{ vino.descripcion.split(' ')[:20] | join(' ') }}...
+                        <a href="javascript:void(0);" onclick="mostrarDescripcionCompleta('{{ vino.id }}')">ver más</a>
+                    </small>
+                    <small id="descripcion-completa-{{ vino.id }}" style="display: none;">
+                        {{ vino.descripcion }}
+                        <a href="javascript:void(0);" onclick="ocultarDescripcionCompleta('{{ vino.id }}')">ver menos</a>
+                    </small>
+                </div>
+            {% endif %}
+    
+                {% if vino.maridaje_1_viv %}
+                <div class="mt-2">
+                    <div class="flex flex-wrap gap-4">
+                        {% if vino.maridaje_1_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_1_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_1 }}</small>
+                        </div>
+                        {% endif %}
+                        
+                        {% if vino.maridaje_2_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_2_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_2 }}</small>
+                        </div>
+                        {% endif %}
+                        
+                        {% if vino.maridaje_3_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_3_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_3 }}</small>
+                        </div>
+                        {% endif %}
+                        
+                        {% if vino.maridaje_4_viv %}
+                        <div class="flex flex-col items-center">
+                            <img src="{{ vino.maridaje_4_viv }}" class="object-cover w-12 h-12 rounded-lg" />
+                            <small class="text-xs text-gray-700 mt-2">{{ vino.maridaje_4 }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+      
+            </div>
+            {% endfor %}
+            {% else %}
+            <small>No hay más vinos de este varietal para recomendarte</small>
+            {% endif %}
+            </div>
+            </div>
+
+    <div class="flex justify-between mt-2">
+        <small>usuario: {{ id_usuario }} - cant. valorados: {{ cant_valorados }} - cant. ignorados: {{ cant_ignorados}} - recomendador: {{ algoritmo}}  <a href="/reset" class="px-1 py-1 bg-teal-500 text-xs text-white rounded-xl">reset</a></small> 
+    </div>
+    </div>
+</form>
+</body>
+</html>
